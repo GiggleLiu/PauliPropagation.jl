@@ -43,6 +43,7 @@ Constructor for a frozen `PauliRotation` acting on the qubits `qinds` with the P
 function PauliRotation(symbols, qinds, theta)
     return FrozenGate(PauliRotation(symbols, qinds), theta)
 end
+Base.:(==)(a::PauliRotation, b::PauliRotation) = a.symbols == b.symbols && a.qinds == b.qinds
 
 """
     MaskedPauliRotation(symbols::Vector{Symbol}, qinds::Vector{Int}, term::PauliStringType)

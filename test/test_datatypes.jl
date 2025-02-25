@@ -1,6 +1,6 @@
 ## Test the datatypes module with all possible constructors and adders
 
-using Test
+using Test, PauliPropagation
 
 #TODO: Add example tests for PauliString constructors
 function createpaulistring(nq)
