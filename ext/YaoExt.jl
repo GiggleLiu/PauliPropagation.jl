@@ -2,13 +2,24 @@ module YaoExt
 
 using Yao, PauliPropagation
 
-function PauliPropagation.yao_circuit(n::Int, circ::AbstractVector{Gate}, thetas::AbstractVector)
+function PauliPropagation.yao_circuit(n::Int, circ::AbstractVector{<:Gate}, thetas::AbstractVector)
     @assert length(thetas) == countparameters(circ)
     thetas = copy(thetas)
     c = chain(n)
     for g in circ
         if g isa PauliRotation
             push!(c, put(n, (g.qinds...,) => rot(kron(symbol_to_yao.(g.symbols)...), popfirst!(thetas))))
+        elseif g isa DepolarizingNoise
+            @assert length(g.qind) == 1 "Depolarizing noise should be applied to a single qubit"
+            push!(c, put(n, (g.qind...,) => single_qubit_depolarizing_channel(popfirst!(thetas))))
+        elseif g isa PauliXNoise
+            push!(c, put(n, (g.qind...,) => pauli_error_channel(; px=popfirst!(thetas), py=0.0, pz=0.0)))
+        elseif g isa PauliYNoise
+            push!(c, put(n, (g.qind...,) => pauli_error_channel(; px=0.0, py=popfirst!(thetas), pz=0.0)))
+        elseif g isa PauliZNoise
+            push!(c, put(n, (g.qind...,) => pauli_error_channel(; px=0.0, py=0.0, pz=popfirst!(thetas))))
+        elseif g isa DephasingNoise
+            error("Dephasing noise not implemented")
         else
             error("Unsupported gate type: $(typeof(g))")
         end
@@ -28,6 +39,21 @@ function PauliPropagation.from_yao(circ::ChainBlock; frozen_rots::Bool=false)
             else
                 push!(gates, PauliRotation(yao_to_symbols(g.content.block), collect(g.locs)))
                 push!(thetas, g.content.theta)
+            end
+        elseif g isa PutBlock && g.content isa UnitaryChannel
+            for (prob, operator) in zip(g.content.probs, g.content.operators)
+                if operator isa Yao.XGate
+                    push!(gates, PauliYNoise(collect(g.locs), prob))
+                    push!(gates, PauliZNoise(collect(g.locs), prob))
+                elseif operator isa YGate
+                    push!(gates, PauliZNoise(collect(g.locs), prob))
+                    push!(gates, PauliXNoise(collect(g.locs), prob))
+                elseif operator isa ZGate
+                    push!(gates, PauliXNoise(collect(g.locs), prob))
+                    push!(gates, PauliYNoise(collect(g.locs), prob))
+                elseif !(operator isa Yao.I2Gate)
+                    error("Unsupported error type: $(typeof(operator))")
+                end
             end
         else
             error("Unsupported gate type: $(typeof(g))")
