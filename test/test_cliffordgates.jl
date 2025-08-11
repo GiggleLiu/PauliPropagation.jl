@@ -1,4 +1,4 @@
-using Test
+using Test, PauliPropagation
 
 @testset "Test create Clifford gates" begin
     """Test gate map function from a user-defined gate."""

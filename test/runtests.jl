@@ -37,4 +37,5 @@ using Random
 
     include("test_numericalcertificates.jl")
 
+    include("test_yaoext.jl")
 end

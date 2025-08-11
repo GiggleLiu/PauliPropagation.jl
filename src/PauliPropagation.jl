@@ -142,4 +142,7 @@ export
     evaluate!,
     reset!
 
+export yao_circuit, from_yao
+include("yao_interfaces.jl")
+
 end

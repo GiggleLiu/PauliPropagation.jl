@@ -1,4 +1,4 @@
-using Test
+using Test, PauliPropagation
 
 @testset "Test Circuit Utils" begin
     nq = 3

@@ -22,6 +22,7 @@ import Base.show
 function show(io::IO, frozen_gate::FrozenGate)
     print(io, "FrozenGate($(frozen_gate.gate), θ = $(round(frozen_gate.parameter, sigdigits=3)))")
 end
+Base.:(==)(a::FrozenGate, b::FrozenGate) = a.gate == b.gate && a.parameter == b.parameter
 
 """
     freeze(gate::ParametrizedGate, parameter::Number)
